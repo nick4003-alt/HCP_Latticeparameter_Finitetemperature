@@ -46,11 +46,12 @@ variable eq21 equal "v_eq12/v_natoms"
 fix equilibration_dump all print 1 "${eq1} ${eq2} ${eq3} ${eq4} ${eq5} ${eq6} ${eq7} ${eq8} ${eq9} ${eq10} ${eq11} ${eq12} ${eq13} ${eq14} ${eq15} ${eq16}${teng} ${natoms} ${ecoh} ${eq21}" file equil.50.dat screen no
 thermo 100
 thermo_style custom step pxx pyy pzz pyz pxz pxy vol temp press etotal
-dump 1 all custom 100 euil_hcpTi.Ti id type xs ys zs id 
+dump 1 all custom 100 euil_hcpMg.Mg id type xs ys zs id 
 run 10000
 # reset#########
 unfix npt_fluctuation
 unfix equilibration_dump
+undump 1
 # save the atomic position or start over#########
 write_restart restart.equil
 fix npt_fluctuation1 all npt temp 50 50 0.1 iso 0 0 1 
@@ -78,8 +79,9 @@ variable eq21 equal "v_eq12/v_natoms"
 fix production_dump all print 1 "${eq1} ${eq2} ${eq3} ${eq4} ${eq5} ${eq6} ${eq7} ${eq8} ${eq9} ${eq10} ${eq11} ${eq12} ${eq13} ${eq14} ${eq15} ${eq16}${teng} ${natoms} ${ecoh} ${eq21}" file product.50.dat screen no
 thermo 100
 thermo_style custom step pxx pyy pzz pyz pxz pxy vol temp press etotal
-dump 1 all custom 100 euil_hcpTi.Ti id type xs ys zs id 
+dump 2 all custom 100 product_hcp.Mg.Mg id type xs ys zs id 
 run 40000
 # reset#########
 unfix npt_fluctuation1
 unfix production_dump
+undump 2
