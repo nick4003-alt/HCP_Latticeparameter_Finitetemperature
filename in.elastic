@@ -1,0 +1,59 @@
+# Ti alpha phase (hcp)
+
+units		metal
+boundary	p p p
+
+atom_style	atomic
+lattice		custom 3.193 a1 0.5 -0.866025 0 a2 0.5 0.866025 0 a3 0 0 1.620 basis 0.333333 0.666666 0.25 basis 0.666666 0.333333 0.75  
+#read_data Mg.lmp
+region box block 0 5 0 5 0 5  
+create_box             1 box
+create_atoms           1 box 
+pair_style meam/c
+pair_coeff * *  library.meam.txt Mg Mg.meam.txt Mg 
+mass            * 24.305
+timestep 0.001
+compute new all temp
+compute msd1 all msd
+compute eng all pe/atom
+compute                eatoms all reduce sum c_eng
+velocity all create 50 12345 mom yes rot yes dist gaussian
+############################################ Find the volume for 1 bar and find elastic constant###############################
+
+min_style cg
+minimize 1e-6 1e-6 10000 10000
+##################### run simulation on NVT#############
+
+fix npt_fluctuation all npt temp 50 50 0.1 iso 0 0 1 
+variable eq1 equal "step"
+variable eq2 equal "pxx/10000"
+variable eq3 equal "pyy/10000"
+variable eq4 equal "pzz/10000"
+variable eq5 equal "pyz/10000"
+variable eq6 equal "pxz/10000"
+variable eq7 equal "pxy/10000"
+variable eq8 equal "lx"
+variable eq9 equal "ly"
+variable eq10 equal "lz"
+variable eq11 equal "temp"
+variable eq12 equal "vol"
+variable eq13 equal "etotal"
+variable eq14 equal "press/10000"
+variable eq15 equal "c_msd1[4]"
+variable eq16 equal "(c_msd1[4])^(1/2)"
+variable natoms equal "count(all)" 
+variable teng equal "c_eatoms"
+variable ecoh equal "v_teng/v_natoms"
+variable eq21 equal "v_eq12/v_natoms"
+
+fix equilibration_dump all print 1 "${eq1} ${eq2} ${eq3} ${eq4} ${eq5} ${eq6} ${eq7} ${eq8} ${eq9} ${eq10} ${eq11} ${eq12} ${eq13} ${eq14} ${eq15} ${eq16}${teng} ${natoms} ${ecoh} ${eq21}" file equil.50.dat screen no
+thermo 100
+thermo_style custom step pxx pyy pzz pyz pxz pxy vol temp press etotal
+dump 1 all custom 100 euil_hcpTi.Ti id type xs ys zs id 
+run 40000
+# reset#########
+unfix npt_fluctuation
+unfix equilibration_dump
+# save the atomic position or start over#########
+write_restart restart.equil
+
